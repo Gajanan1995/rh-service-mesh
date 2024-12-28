@@ -1,0 +1,10 @@
+{{- range $tenantName, $tenantConfig := .Values.tenants }}
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: jaeger-product-group
+  namespace: {{ $tenantConfig.jaeger.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec: {}
+{{- end }}

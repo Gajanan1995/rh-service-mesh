@@ -1,0 +1,15 @@
+{{- range $tenantName, $tenantConfig := .Values.tenants }}
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: {{ $tenantConfig.kiali.name }}
+  namespace: {{ $tenantConfig.kiali.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  channel: {{ $tenantConfig.kiali.channel }}
+  installPlanApproval: {{ $tenantConfig.kiali.installPlanApproval }}
+  name: {{ $tenantConfig.kiali.name }}
+  source: {{ $tenantConfig.kiali.source }}
+  sourceNamespace: {{ $tenantConfig.kiali.sourceNamespace }}
+{{- end }}

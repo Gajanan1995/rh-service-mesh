@@ -1,0 +1,15 @@
+{{- range $tenantName, $tenantConfig := .Values.tenants }}
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: {{ $tenantConfig.elasticSearch.name }}
+  namespace: {{ $tenantConfig.elasticSearch.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  channel: {{ $tenantConfig.elasticSearch.channel }}
+  installPlanApproval: {{ $tenantConfig.elasticSearch.installPlanApproval }}
+  name: {{ $tenantConfig.elasticSearch.name }}
+  source: {{ $tenantConfig.elasticSearch.source }}
+  sourceNamespace: {{ $tenantConfig.elasticSearch.sourceNamespace }}
+{{- end }}

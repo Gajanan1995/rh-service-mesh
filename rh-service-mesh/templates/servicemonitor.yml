@@ -1,0 +1,31 @@
+{{- range $tenantName, $tenantConfig := .Values.tenants }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: istio-federation-{{ $tenantName }}
+  namespace: {{ $tenantConfig.namespace }}
+  labels:
+    app.kubernetes.io/name: prometheus
+spec:
+  namespaceSelector:
+    matchNames:
+    - {{ $tenantConfig.namespace }}
+  selector:
+    matchLabels:
+      app: prometheus
+  endpoints:
+  - interval: 30s
+    scrapeTimeout: 30s
+    params:
+      'match[]':
+      - '{job="pilot"}'
+      - '{job="envoy-stats"}'
+    path: /federate
+    targetPort: 9090
+    honorLabels: true
+    metricRelabelings:
+    - sourceLabels: ["__name__"]
+      regex: 'workload:(.*)'
+      targetLabel: "__name__"
+      action: replace
+{{- end }}

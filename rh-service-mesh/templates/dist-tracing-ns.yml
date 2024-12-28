@@ -1,0 +1,9 @@
+{{- range $tenantName, $tenantConfig := .Values.tenants }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ $tenantConfig.jaeger.namespace }}
+  annotations:
+    openshift.io/node-selector: ""
+    argocd.argoproj.io/sync-wave: "-1"
+{{- end }}

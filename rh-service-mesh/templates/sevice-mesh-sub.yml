@@ -1,0 +1,15 @@
+{{- range $tenantName, $tenantConfig := .Values.tenants }}
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: {{ $tenantConfig.serviceMesh.name }}
+  namespace: {{ $tenantConfig.serviceMesh.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  channel: {{ $tenantConfig.serviceMesh.channel | default .Values.serviceMesh.channel }}
+  installPlanApproval: {{ $tenantConfig.serviceMesh.installPlanApproval | default .Values.serviceMesh.installPlanApproval }}
+  name: {{ $tenantConfig.serviceMesh.name | default .Values.serviceMesh.name }}
+  source: {{ $tenantConfig.serviceMesh.source | default .Values.serviceMesh.source }}
+  sourceNamespace: {{ $tenantConfig.serviceMesh.sourceNamespace | default .Values.serviceMesh.sourceNamespace }}
+{{- end }}

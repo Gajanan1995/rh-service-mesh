@@ -1,0 +1,24 @@
+{{- range $tenantName, $tenantConfig := .Values.tenants }}
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: prometheus-istio-egress-{{ $tenantName }}
+  namespace: {{ $tenantConfig.namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      istio: egressgateway
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: 15020
+      from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: newrelic-prometheus-agent
+          namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: newrelic
+  policyTypes:
+    - Ingress
+{{- end }}

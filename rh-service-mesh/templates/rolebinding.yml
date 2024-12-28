@@ -1,0 +1,15 @@
+{{- range $tenantName, $tenantConfig := .Values.tenants }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: permissionforsa-{{ $tenantName }}
+  namespace: {{ $tenantConfig.serviceMesh.namespace }} 
+subjects:
+  - kind: ServiceAccount
+    name: prometheus-k8s
+    namespace: openshift-monitoring 
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view
+{{- end }}

@@ -1,0 +1,113 @@
+{{- range $tenantName, $tenantConfig := .Values.tenants }}
+apiVersion: maistra.io/v2
+kind: ServiceMeshControlPlane
+metadata:
+  name: {{ $tenantName }}-basic
+  namespace: {{ $tenantConfig.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  version: {{ $tenantConfig.serviceMesh.controlPlane.version | default $.Values.global.controlPlane.version }}
+    dataPlane:
+      mtls: true
+  tracing:
+    sampling: {{ $tenantConfig.serviceMesh.controlPlane.sampling | default $.Values.global.controlPlane.sampling }}
+    type: Jaeger
+  runtime:
+    components:
+      pilot:
+        container:
+          resources:
+            requests:
+              cpu: '1'
+              memory: 1.6Gi
+            limits:
+              cpu: '3'
+              memory: 4.8Gi
+      jaeger:
+        container:
+          resources:
+            requests:
+              cpu: 100m
+              memory: 250Mi
+            limits:
+              cpu: 500m
+              memory: 750Mi
+      kiali:
+        container:
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 1Gi
+      prometheus:
+        container:
+          resources:
+            requests:
+              cpu: 100m
+              memory: 1Gi
+            limits:
+              cpu: 500m
+              memory: 10Gi
+      grafana:
+        container:
+          resources:
+            requests:
+              cpu: 10m
+              memory: 128Mi
+            limits:
+              cpu: 100m
+              memory: 256Mi
+
+  proxy:
+    runtime:
+      container:
+        resources:
+          requests:
+            cpu: {{ $tenantConfig.serviceMesh.proxy.requests.cpu| default $.Values.global.serviceMesh.proxy.requests.cpu }}
+            memory: {{ $tenantConfig.serviceMesh.proxy.requests.memory | default $.Values.global.serviceMesh.proxy.requests.memory}}
+          limits:
+            cpu: {{ $tenantConfig.serviceMesh.proxy.limits.cpu | default $.Values.global.serviceMesh.proxy.limits.cpu}}
+            memory: {{ $tenantConfig.serviceMesh.proxy.limits.memory | default $.Values.global.serviceMesh.proxy.limits.memory }}
+    injection:
+      autoInject: true
+  gateways:
+      egress:
+        runtime:
+          deployment:
+            autoScaling:
+              enabled: true
+      ingress:
+        runtime:
+          deployment:
+            autoScaling:
+              enabled: true
+              maxReplicas: 9
+              minReplicas: 3
+  addons:
+    jaeger:
+      name: jaeger-prod
+
+    kiali:
+      enabled: true
+      name: kiali
+      install:
+        deployment:
+          nodeSelector:
+            node-role.kubernetes.io/infra: ""
+          tolerations:
+          - effect: NoSchedule
+            key: infra
+            value: reserved
+          - effect: NoExecute
+            key: infra
+            value: reserved
+        dashboard:
+          viewOnly: true
+          enableGrafana: false
+          enableTracing: true
+          enablePrometheus: true
+{{- end }}
